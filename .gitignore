@@ -1,2 +1,36 @@
+# Ignore Keys directory
 Keys/
+
+# Ignore environment variables file
 .env
+
+# Terraform specific
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+*.tfvars
+override.tf
+override.tf.json
+terraform.tfvars.json
+.terraform.lock.hcl
+*.backup
+
+# Ansible specific
+*.retry
+*.log
+inventory.ini
+secrets.yml
+vault_pass.txt
+group_vars/
+host_vars/
+
+# General
+*.swp
+*.bak
+*.tmp
+*.orig
+*.old
+.DS_Store
+__pycache__/
+*.pyc
