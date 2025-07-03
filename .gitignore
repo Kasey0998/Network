@@ -34,3 +34,5 @@ host_vars/
 .DS_Store
 __pycache__/
 *.pyc
+*.pem
+*.ppk

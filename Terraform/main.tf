@@ -1,6 +1,6 @@
 resource "aws_key_pair" "kasey_aws_krishna" {
   key_name   = var.key_name
-  public_key = file("../Keys/${var.key_name}.pub")
+  public_key = file("${var.key_name}.pub")
 }
 
 resource "aws_security_group" "web_sg" {
