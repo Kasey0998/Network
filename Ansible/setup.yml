@@ -1,0 +1,47 @@
+---
+- name: Prepare EC2 instance and install Docker
+  hosts: ec2_instances
+  become: yes
+  vars:
+    new_hostname: my-network-assignment 
+
+  tasks:
+    - name: Update all packages cache
+      yum:
+        update_cache: yes
+
+    - name: Upgrade all packages to the latest version
+      yum:
+        name: '*'
+        state: latest
+
+    - name: Set the hostname
+      hostname:
+        name: "{{ new_hostname }}"
+
+    - name: Install required packages for Docker
+      yum:
+        name:
+          - yum-utils
+          - device-mapper-persistent-data
+          - lvm2
+        state: present
+
+    - name: Add Docker repo
+      command: yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+      args:
+        creates: /etc/yum.repos.d/docker-ce.repo
+
+    - name: Install Docker CE
+      yum:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+        state: latest
+
+    - name: Start and enable Docker service
+      systemd:
+        name: docker
+        state: started
+        enabled: yes

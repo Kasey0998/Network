@@ -2,25 +2,11 @@ provider "aws" {
   region = "eu-west-1"
 }
 
-variable "key_name" {
-  description = "Name of the SSH key pair"
-  type        = string
-  default     = "kasey-aws-krishna"
-}
-
-variable "ami_id" {
-  description = "Amazon Linux 2 AMI ID for eu-west-1"
-  type        = string
-  default     = "ami-09d95fab7fff3776c"
-}
-
-data "aws_key_pair" "kasey_aws_krishna" {
-  key_name = var.key_name
-}
-
-resource "aws_security_group" "web_sg" {
-  name        = "web-sg"
-  description = "Allow SSH and HTTP"
+# Security group allowing SSH (22) and HTTP (80)
+resource "aws_security_group" "allow_ssh_http" {
+  name        = "allow_ssh_http"
+  description = "Allow SSH and HTTP inbound traffic"
+  vpc_id      = data.aws_vpc.default.id
 
   ingress {
     description = "SSH"
@@ -44,20 +30,25 @@ resource "aws_security_group" "web_sg" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
-}
-
-resource "aws_instance" "web" {
-  ami                    = var.ami_id
-  instance_type          = "t2.micro"
-  key_name               = data.aws_key_pair.kasey_aws_krishna.key_name
-  vpc_security_group_ids = [aws_security_group.web_sg.id]
-
-  root_block_device {
-    volume_size = 8
-    volume_type = "gp2"
-  }
 
   tags = {
-    Name = "Terraform-WebServer"
+    Name = "allow_ssh_http"
+  }
+}
+
+# Get default VPC for security group
+data "aws_vpc" "default" {
+  default = true
+}
+
+# EC2 instance using provided AMI
+resource "aws_instance" "free_tier_instance" {
+  ami                    = "ami-0803576f0c0169402"
+  instance_type          = "t2.micro"
+  key_name               = "kasey-aws-krishna"
+  vpc_security_group_ids = [aws_security_group.allow_ssh_http.id]
+
+  tags = {
+    Name = "FreeTierAmazonLinux"
   }
 }
