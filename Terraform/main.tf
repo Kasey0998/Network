@@ -1,6 +1,6 @@
-resource "aws_key_pair" "kasey_key" {
+resource "aws_key_pair" "kasey_aws_krishna" {
   key_name   = var.key_name
-  public_key = file("${var.key_name}.pub")
+  public_key = file("../Keys/${var.key_name}.pub")
 }
 
 resource "aws_security_group" "web_sg" {
@@ -34,7 +34,7 @@ resource "aws_security_group" "web_sg" {
 resource "aws_instance" "web" {
   ami                    = var.ami_id
   instance_type          = "t2.micro"
-  key_name               = aws_key_pair.kasey_key.key_name
+  key_name               = aws_key_pair.kasey_aws_krishna.key_name
   vpc_security_group_ids = [aws_security_group.web_sg.id]
 
   root_block_device {
