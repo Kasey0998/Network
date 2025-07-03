@@ -1,2 +1,0 @@
-[ec2_instances]
-54.170.216.4 ansible_user=ec2-user

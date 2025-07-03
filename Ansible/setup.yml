@@ -1,39 +1,51 @@
 ---
-- name: Prepare EC2 instance and install Docker
+- name: Prepare EC2 Ubuntu instance and install Docker
   hosts: ec2_instances
   become: yes
   vars:
-    new_hostname: my-network-assignment 
+    new_hostname: my-network-assignment
 
   tasks:
     - name: Update all packages cache
-      yum:
+      apt:
         update_cache: yes
+        cache_valid_time: 3600
 
     - name: Upgrade all packages to the latest version
-      yum:
-        name: '*'
-        state: latest
+      apt:
+        upgrade: dist
 
     - name: Set the hostname
       hostname:
         name: "{{ new_hostname }}"
 
     - name: Install required packages for Docker
-      yum:
+      apt:
         name:
-          - yum-utils
-          - device-mapper-persistent-data
-          - lvm2
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
         state: present
 
-    - name: Add Docker repo
-      command: yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-      args:
-        creates: /etc/yum.repos.d/docker-ce.repo
+    - name: Add Docker GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker APT repository
+      apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+        state: present
+        filename: docker
+
+    - name: Update APT again after adding Docker repo
+      apt:
+        update_cache: yes
 
     - name: Install Docker CE
-      yum:
+      apt:
         name:
           - docker-ce
           - docker-ce-cli

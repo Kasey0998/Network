@@ -43,7 +43,7 @@ data "aws_vpc" "default" {
 
 # EC2 instance using provided AMI
 resource "aws_instance" "free_tier_instance" {
-  ami                    = "ami-0803576f0c0169402"
+  ami                    = "ami-01f23391a59163da9"
   instance_type          = "t2.micro"
   key_name               = "kasey-aws-krishna"
   vpc_security_group_ids = [aws_security_group.allow_ssh_http.id]
