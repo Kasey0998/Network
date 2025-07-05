@@ -39,7 +39,6 @@ data "aws_vpc" "default" {
   default = true
 }
 
-# EC2 instance using provided AMI
 resource "aws_instance" "free_tier_instance" {
   ami                    = "ami-01f23391a59163da9"
   instance_type          = "t2.micro"
