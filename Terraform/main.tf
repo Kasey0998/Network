@@ -2,7 +2,6 @@ provider "aws" {
   region = "eu-west-1"
 }
 
-# Security group allowing SSH (22) and HTTP (80)
 resource "aws_security_group" "allow_ssh_http" {
   name        = "allow_ssh_http"
   description = "Allow SSH and HTTP inbound traffic"
@@ -36,7 +35,6 @@ resource "aws_security_group" "allow_ssh_http" {
   }
 }
 
-# Get default VPC for security group
 data "aws_vpc" "default" {
   default = true
 }
