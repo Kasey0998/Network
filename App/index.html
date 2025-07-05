@@ -39,20 +39,11 @@
 </head>
 <body>
   <div class="container">
-    <h1>🚀 Welcome to My NGINX Server</h1>
+    <h1>Welcome to My NGINX Server</h1>
     <p>You're viewing this page served by NGINX inside a Docker container.</p>
-    <div id="ip">Detecting your server IP...</div>
+    <div id="ip">Server IP : </div>
   </div>
 
-  <script>
-    fetch("https://api.ipify.org?format=json")
-      .then(response => response.json())
-      .then(data => {
-        document.getElementById("ip").innerText = `Server IP: ${data.ip}`;
-      })
-      .catch(() => {
-        document.getElementById("ip").innerText = "Unable to detect IP address.";
-      });
-  </script>
+  
 </body>
 </html>
