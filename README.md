@@ -224,26 +224,28 @@ pipeline {
   agent any
 
   stages {
-    stage('Clone Repository') {
-      steps {
-        git url: 'https://github.com/Kasey0998/Network.git', branch: 'main'
-      }
-    }
-
-    stage('Copy app to remote server') {
+    stage('Deploy on Remote Server') {
       steps {
         sh '''
-          scp -i /Users/kaseysharma/Desktop/Network/Ansible/kasey-aws-krishna.pem -r App/Dockerfile App/index.html ubuntu@52.51.242.224:/home/ubuntu/app/
-        '''
-      }
-    }
+          ssh -i /Users/kaseysharma/Desktop/Network/Ansible/kasey-aws-krishna.pem ubuntu@3.255.89.10 << 'EOF'
+# Clone or update the repo on the server
+cd /home/ubuntu
+if [ ! -d Network ]; then
+  git clone https://github.com/Kasey0998/Network.git
+else
+  cd Network
+  git pull
+  cd ..
+fi
 
-    stage('Build and run Docker on remote server') {
-      steps {
-        sh '''
-          ssh -i /Users/kaseysharma/Desktop/Network/Ansible/kasey-aws-krishna.pem ubuntu@52.51.242.224 << EOF
-cd /home/ubuntu/app
-sudo sed -i "s/IP :/IP :$(curl https://api.ipify.org)/g" index.html
+# Go to the app folder
+cd Network/App
+
+# Fetch the public IP and inject into index.html
+SERVER_IP=$(curl -s ifconfig.io)
+sed -i "s/__SERVER_IP__/$SERVER_IP/" index.html
+
+# Build and run Docker container
 sudo docker build -t nginx-custom .
 sudo docker stop nginx-web || true
 sudo docker rm nginx-web || true
@@ -254,6 +256,7 @@ EOF
     }
   }
 }
+
 ```
 
 > Replace the `.pem` key path and IP address with your own setup for other users.
