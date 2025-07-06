@@ -313,20 +313,6 @@ After deployment:
 | **Ashok**           | Ansible playbook for Docker installation        |
 | **Abhishek**        | Dockerfile creation and web app setup           |
 
-# Troubleshooting
-
-| Issue                            | Solution                                      |
-|----------------------------------|-----------------------------------------------|
-| SSH permission denied            | Ensure correct key permissions (`chmod 400`)  |
-| Jenkins cannot connect to EC2    | Check firewall rules and IP address           |
-| Docker not installed             | Rerun Ansible playbook                        |
-| App not loading                  | Check Docker logs: `docker logs nginx-web`    |
-
-# Security Notes
-
-- SSH key must be securely stored and protected
-- Open ports: only **22** and **80** (use HTTPS for production)
-- Terraform and Jenkins credentials should be secret-managed in production
 
 # References
 
@@ -337,10 +323,10 @@ After deployment:
 - [AWS EC2 Guide](https://docs.aws.amazon.com/ec2/)
 
 
-- Walker, M., 2021. Building Robust CI/CD Pipelines Using Jenkins and Groovy. [online] Baeldung. Available at: https://www.baeldung.com/ops/jenkins-scripted-vs-declarative-pipelines
-- Sumeet Ninawe, 2025. Terraform Tutorial – Getting Started With Terraform. Spacelift Blog. [online] Available at: https://spacelift.io/blog/terraform-tutorial#how-to-get-started-using-terraform
-- Khan, S., 2024. Jenkins Pipeline: Getting Started Tutorial For Beginners [With Examples]. LambdaTest Blog. [online] Available at: https://www.lambdatest.com/blog/jenkins-pipeline-tutorial/
-- GeeksforGeeks, 2024. Groovy's Domain-Specific Language (DSL) for Jenkins Pipelines. [online] Available at: https://www.geeksforgeeks.org/devops/groovys-domain-specific-language-dsl-for-jenkins-pipelines/.
-- wHernández, A., 2024. How to install Docker using Ansible. [online] Available at: https://alexhernandez.info/articles/infrastructure/how-to-install-docker-using-ansible/.
-- Docker Docs, 2024. Writing a Dockerfile. [online] Available at: https://docs.docker.com/get-started/docker-concepts/building-images/writing-a-dockerfile/.
-TutorialsPoint, 2024. Dockerfile. [online] Available at: https://www.tutorialspoint.com/docker/docker_file.htm.
+- [Walker, M., 2021. Building Robust CI/CD Pipelines Using Jenkins and Groovy. (online) Baeldung.](https://www.baeldung.com/ops/jenkins-scripted-vs-declarative-pipelines)
+- [Sumeet Ninawe, 2025. Terraform Tutorial – Getting Started With Terraform. Spacelift Blog. (online)](https://spacelift.io/blog/terraform-tutorial#how-to-get-started-using-terraform)
+- [Khan, S., 2024. Jenkins Pipeline: Getting Started Tutorial For Beginners [With Examples]. LambdaTest Blog. (online)](https://www.lambdatest.com/blog/jenkins-pipeline-tutorial/)
+- [GeeksforGeeks, 2024. Groovy's Domain-Specific Language (DSL) for Jenkins Pipelines. (online)](https://www.geeksforgeeks.org/devops/groovys-domain-specific-language-dsl-for-jenkins-pipelines/)
+- [wHernández, A., 2024. How to install Docker using Ansible. (online)](https://alexhernandez.info/articles/infrastructure/how-to-install-docker-using-ansible/)
+- [Docker Docs, 2024. Writing a Dockerfile.(online)](https://docs.docker.com/get-started/docker-concepts/building-images/writing-a-dockerfile/)
+- [TutorialsPoint, 2024. Dockerfile. (online)](https://www.tutorialspoint.com/docker/docker_file.htm)
