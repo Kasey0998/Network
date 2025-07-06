@@ -1,0 +1,34 @@
+pipeline {
+  agent any
+
+  stages {
+    stage('Clone Repository') {
+      steps {
+        git url: 'https://github.com/Kasey0998/Network.git', branch: 'main'
+      }
+    }
+
+    stage('Copy app to remote server') {
+      steps {
+        sh '''
+          scp -i /Users/kaseysharma/Desktop/Network/Ansible/kasey-aws-krishna.pem -r App/Dockerfile App/index.html ubuntu@52.51.242.224:/home/ubuntu/app/
+        '''
+      }
+    }
+
+    stage('Build and run Docker on remote server') {
+      steps {
+        sh '''
+          ssh -i /Users/kaseysharma/Desktop/Network/Ansible/kasey-aws-krishna.pem ubuntu@52.51.242.224 << EOF
+cd /home/ubuntu/app
+sudo sed -i "s/IP :/IP :$(curl https://api.ipify.org)/g" index.html
+sudo docker build -t nginx-custom .
+sudo docker stop nginx-web || true
+sudo docker rm nginx-web || true
+sudo docker run -d --name nginx-web -p 80:80 nginx-custom
+EOF
+        '''
+      }
+    }
+  }
+}
