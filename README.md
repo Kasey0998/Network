@@ -22,7 +22,8 @@ Project/
 │   └── output.tf
 │
 ├── ansible/
-│   └── install_docker.yml
+│   ├── inventory.ini
+│   └── setup.yml
 │
 ├── jenkins/
 │   └── Jenkinsfile
@@ -43,16 +44,12 @@ Defines AWS infrastructure:
 - Region: `eu-west-1`
 - Default VPC
 - Security Group allowing SSH (port 22) and HTTP (port 80)
-- EC2 instance (`t2.micro`) with Amazon Linux 2 AMI
+- EC2 instance (`t2.micro`) with Ubuntu 2.04 LTS
 - Associates key pair `kasey-aws-krishna.pem`
 
 ```hcl
 provider "aws" {
   region = "eu-west-1"
-}
-
-data "aws_vpc" "default" {
-  default = true
 }
 
 resource "aws_security_group" "allow_ssh_http" {
@@ -61,6 +58,7 @@ resource "aws_security_group" "allow_ssh_http" {
   vpc_id      = data.aws_vpc.default.id
 
   ingress {
+    description = "SSH"
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
@@ -68,6 +66,7 @@ resource "aws_security_group" "allow_ssh_http" {
   }
 
   ingress {
+    description = "HTTP"
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
@@ -80,6 +79,14 @@ resource "aws_security_group" "allow_ssh_http" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+  tags = {
+    Name = "allow_ssh_http"
+  }
+}
+
+data "aws_vpc" "default" {
+  default = true
 }
 
 resource "aws_instance" "free_tier_instance" {
@@ -120,27 +127,75 @@ terraform apply
 
 # Ansible Playbook (By Ashok)
 
-# `install_docker.yml`
+# `setup.yml`
 
 Installs Docker on the EC2 instance via SSH using Ansible.
 
 ```yaml
 ---
-- name: Install Docker on EC2
-  hosts: aws_ec2
+- name: Prepare EC2 Ubuntu instance and install Docker
+  hosts: ec2_instances
   become: yes
+  vars:
+    new_hostname: my-network-assignment
+
   tasks:
-    - name: Update apt cache
-      apt: update_cache=yes
+    - name: Update all packages cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
 
-    - name: Install Docker
-      apt: name=docker.io state=present
+    - name: Upgrade all packages to the latest version
+      apt:
+        upgrade: dist
 
-    - name: Start and enable Docker
-      service:
+    - name: Set the hostname
+      hostname:
+        name: "{{ new_hostname }}"
+
+    - name: Install required packages for Docker
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+        state: present
+
+    - name: Add Docker GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker APT repository
+      apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+        state: present
+        filename: docker
+
+    - name: Update APT again after adding Docker repo
+      apt:
+        update_cache: yes
+
+    - name: Install Docker CE
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+        state: latest
+
+    - name: Start and enable Docker service
+      systemd:
         name: docker
         state: started
         enabled: yes
+```
+# inventory.ini
+```ini
+[ec2_instances]
+3.255.89.10 ansible_user=ubuntu ansible_ssh_private_key_file=/Users/kaseysharma/Desktop/Network/Ansible/kasey-aws-krishna.pem
 ```
 
 # Run Instructions
@@ -150,6 +205,7 @@ Configure `inventory` with EC2 public IP and then:
 ```bash
 ansible-playbook -i inventory install_docker.yml
 ```
+> Replace the `.pem` key path and IP address with your own setup for other users.
 
 # Jenkins Pipeline Script (By Krishna Sharma)
 
@@ -168,23 +224,26 @@ pipeline {
   agent any
 
   stages {
-    stage('Deploy on Remote Server') {
+    stage('Clone Repository') {
+      steps {
+        git url: 'https://github.com/Kasey0998/Network.git', branch: 'main'
+      }
+    }
+
+    stage('Copy app to remote server') {
       steps {
         sh '''
-          ssh -i /Users/kaseysharma/Desktop/Network/Ansible/kasey-aws-krishna.pem ubuntu@3.255.89.10 << 'EOF'
-cd /home/ubuntu
-if [ ! -d Network ]; then
-  git clone https://github.com/Kasey0998/Network.git
-else
-  cd Network
-  git pull
-  cd ..
-fi
+          scp -i /Users/kaseysharma/Desktop/Network/Ansible/kasey-aws-krishna.pem -r App/Dockerfile App/index.html ubuntu@52.51.242.224:/home/ubuntu/app/
+        '''
+      }
+    }
 
-cd Network/App
-SERVER_IP=$(curl -s ifconfig.io)
-sed -i "s/__SERVER_IP__/$SERVER_IP/" index.html
-
+    stage('Build and run Docker on remote server') {
+      steps {
+        sh '''
+          ssh -i /Users/kaseysharma/Desktop/Network/Ansible/kasey-aws-krishna.pem ubuntu@52.51.242.224 << EOF
+cd /home/ubuntu/app
+sudo sed -i "s/IP :/IP :$(curl https://api.ipify.org)/g" index.html
 sudo docker build -t nginx-custom .
 sudo docker stop nginx-web || true
 sudo docker rm nginx-web || true
@@ -197,7 +256,7 @@ EOF
 }
 ```
 
-> Replace the `.pem` key path and IP address with your own setup.
+> Replace the `.pem` key path and IP address with your own setup for other users.
 
 # Docker Configuration (By Abhishek)
 
@@ -207,7 +266,10 @@ Builds a custom Nginx image with the application page.
 
 ```dockerfile
 FROM nginx:alpine
-COPY index.html /usr/share/nginx/html
+RUN rm -rf /usr/share/nginx/html/*
+COPY index.html /usr/share/nginx/html/
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
 ```
 
 # Web Application (`index.html`)
@@ -275,3 +337,10 @@ After deployment:
 - [AWS EC2 Guide](https://docs.aws.amazon.com/ec2/)
 
 
+- Walker, M., 2021. Building Robust CI/CD Pipelines Using Jenkins and Groovy. [online] Baeldung. Available at: https://www.baeldung.com/ops/jenkins-scripted-vs-declarative-pipelines
+- Sumeet Ninawe, 2025. Terraform Tutorial – Getting Started With Terraform. Spacelift Blog. [online] Available at: https://spacelift.io/blog/terraform-tutorial#how-to-get-started-using-terraform
+- Khan, S., 2024. Jenkins Pipeline: Getting Started Tutorial For Beginners [With Examples]. LambdaTest Blog. [online] Available at: https://www.lambdatest.com/blog/jenkins-pipeline-tutorial/
+- GeeksforGeeks, 2024. Groovy's Domain-Specific Language (DSL) for Jenkins Pipelines. [online] Available at: https://www.geeksforgeeks.org/devops/groovys-domain-specific-language-dsl-for-jenkins-pipelines/.
+- wHernández, A., 2024. How to install Docker using Ansible. [online] Available at: https://alexhernandez.info/articles/infrastructure/how-to-install-docker-using-ansible/.
+- Docker Docs, 2024. Writing a Dockerfile. [online] Available at: https://docs.docker.com/get-started/docker-concepts/building-images/writing-a-dockerfile/.
+TutorialsPoint, 2024. Dockerfile. [online] Available at: https://www.tutorialspoint.com/docker/docker_file.htm.
