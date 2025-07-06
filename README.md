@@ -228,7 +228,7 @@ pipeline {
       steps {
         sh '''
           ssh -i /Users/kaseysharma/Desktop/Network/Ansible/kasey-aws-krishna.pem ubuntu@3.255.89.10 << 'EOF'
-# Clone or update the repo on the server
+
 cd /home/ubuntu
 if [ ! -d Network ]; then
   git clone https://github.com/Kasey0998/Network.git
@@ -238,14 +238,11 @@ else
   cd ..
 fi
 
-# Go to the app folder
 cd Network/App
 
-# Fetch the public IP and inject into index.html
 SERVER_IP=$(curl -s ifconfig.io)
 sed -i "s/__SERVER_IP__/$SERVER_IP/" index.html
 
-# Build and run Docker container
 sudo docker build -t nginx-custom .
 sudo docker stop nginx-web || true
 sudo docker rm nginx-web || true
