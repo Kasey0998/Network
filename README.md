@@ -44,7 +44,7 @@ Defines AWS infrastructure:
 - Region: `eu-west-1`
 - Default VPC
 - Security Group allowing SSH (port 22) and HTTP (port 80)
-- EC2 instance (`t2.micro`) with Ubuntu 2.04 LTS
+- EC2 instance (`t2.micro`) with Ubuntu 24.04 LTS
 - Associates key pair `kasey-aws-krishna.pem`
 
 ```hcl
